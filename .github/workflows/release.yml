@@ -1,0 +1,23 @@
+name: Auto Release
+on:
+  push:
+    branches: [main]
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set Version and Create Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(awk -F= '/VM_CLI_VERSION/ {gsub(/"/, "", $2); print $2; exit}' vm-cli)"
+          COMMIT_MSG=$(git log -1 --pretty=%B)
+          echo "Version: $VERSION"
+          echo "Commit Message: $COMMIT_MSG"
+          # if echo "$COMMIT_MSG" | grep -iq "^create release"; then
+            gh release view "v$VERSION" && gh release delete "v$VERSION" --cleanup-tag --yes
+            gh release create "v$VERSION" --title "Release v$VERSION"
+          # fi
