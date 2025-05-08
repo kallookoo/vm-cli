@@ -20,6 +20,6 @@ jobs:
           fi
           echo "Version: $VERSION"
           if git log -1 --pretty=%B | grep -iq "^create release"; then
-            gh release view "v$VERSION" && gh release delete "v$VERSION" --cleanup-tag --yes
-            gh release create "v$VERSION" --title "Release v$VERSION"
+            gh release list | awk '{print $2}' | while read -r tag; do gh release delete "$tag" --cleanup-tag --yes; done
+            gh release create "v$VERSION" --title "Release v$VERSION" --latest
           fi

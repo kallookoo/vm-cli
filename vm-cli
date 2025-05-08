@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VM_CLI_VERSION="0.0.1"
+VM_CLI_VERSION="1.0.0"
 
 if ! [[ -n "$VM_CLI_CMD_TIMEOUT" && "$VM_CLI_CMD_TIMEOUT" =~ ^[0-9]+$ ]]; then
   VM_CLI_CMD_TIMEOUT=30
