@@ -14,10 +14,12 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           VERSION="$(awk -F= '/VM_CLI_VERSION/ {gsub(/"/, "", $2); print $2; exit}' vm-cli)"
-          COMMIT_MSG=$(git log -1 --pretty=%B)
+          if [ -z "$VERSION" ]; then
+            echo "Version not found in vm-cli file."
+            exit 1
+          fi
           echo "Version: $VERSION"
-          echo "Commit Message: $COMMIT_MSG"
-          # if echo "$COMMIT_MSG" | grep -iq "^create release"; then
+          if git log -1 --pretty=%B | grep -iq "^create release"; then
             gh release view "v$VERSION" && gh release delete "v$VERSION" --cleanup-tag --yes
             gh release create "v$VERSION" --title "Release v$VERSION"
-          # fi
+          fi
