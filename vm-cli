@@ -2,11 +2,15 @@
 
 VM_CLI_VERSION="1.0.0"
 
+VM_CLI_VM_NAME=""
+VM_CLI_CURRENT_MESSAGE=""
+
 if ! [[ -n "$VM_CLI_CMD_TIMEOUT" && "$VM_CLI_CMD_TIMEOUT" =~ ^[0-9]+$ ]]; then
   VM_CLI_CMD_TIMEOUT=30
 fi
-
-[ "$VM_CLI_CMD_TIMEOUT" -lt 1 ] && VM_CLI_CMD_TIMEOUT=1
+if [[ "$VM_CLI_CMD_TIMEOUT" -lt 0 ]]; then
+  VM_CLI_CMD_TIMEOUT=0
+fi
 
 __vm_cli_help() {
   cat <<EOF
@@ -25,6 +29,9 @@ GLOBAL COMMANDS:
     --running         Show only running.
   help                Show this help message.
   version             Show version information.
+  update              Updates wm-cli to the latest version.
+    --token           Specify the GitHub token for authentication.
+                      Required if you have exceeded the GitHub API rate limit.
 
 VIRTUAL MACHINE COMMANDS:
   See the VBoxManage documentation for more details.
@@ -35,7 +42,6 @@ VIRTUAL MACHINE COMMANDS:
     --putenv, -E      Set environment variables for the Virtual Machine.
     --password        Set the password file for the Virtual Machine.
     --password-id     Set the password ID for the Virtual Machine.
-
   stop                Stop the Virtual Machine (saves state by default).
     --save            Save the Virtual Machine state.
     --acpi            Send ACPI power button signal.
@@ -67,10 +73,7 @@ EOF
 }
 
 __vm_cli_message() {
-  if ! [ -t 1 ]; then
-    return 0
-  fi
-
+  [ -t 1 ] && return 0
   local message status
   local color_WAIT="\e[1;35m"
   local color_INFO="\e[1;36m"
@@ -79,37 +82,29 @@ __vm_cli_message() {
   local color_FAILED="\e[1;31m"
   local color_RESET="\e[0m"
   local color_VM="\e[1;34m"
-
   case "$1" in
-  --info)
-    status="${color_INFO}[INFO]${color_RESET}"
-    ;;
-  --done)
-    status="${color_DONE}[DONE]${color_RESET}"
-    ;;
-  --failed)
-    status="${color_FAILED}[FAILED]${color_RESET}"
-    ;;
-  --warning)
-    status="${color_WARNING}[WARNING]${color_RESET}"
-    ;;
+  --info) status="${color_INFO}[INFO]${color_RESET}" ;;
+  --done) status="${color_DONE}[DONE]${color_RESET}" ;;
+  --failed) status="${color_FAILED}[FAILED]${color_RESET}" ;;
+  --warning) status="${color_WARNING}[WARNING]${color_RESET}" ;;
   *)
     VM_CLI_CURRENT_MESSAGE="$1"
     sleep 0.4
     ;;
   esac
-
-  [ -n "$2" ] && VM_CLI_CURRENT_MESSAGE="$2"
-
-  message="$(echo "$VM_CLI_CURRENT_MESSAGE" | xargs)"
-  [[ -n "$VM_CLI_VM_NAME" ]] && message="[ ${color_VM}${VM_CLI_VM_NAME}${color_RESET} ] $message"
-  if [[ -z "$status" ]]; then
-    message="${color_WAIT}[WAIT]${color_RESET} $message"
-  else
-    message="$status $message\n"
+  if [[ -n "$2" ]]; then
+    VM_CLI_CURRENT_MESSAGE="$2"
   fi
-
-  printf "\r$(tput el)%b" "$message"
+  message="$(echo "$VM_CLI_CURRENT_MESSAGE" | xargs)"
+  if [[ -n "$VM_CLI_VM_NAME" ]]; then
+    message="[ ${color_VM}${VM_CLI_VM_NAME}${color_RESET} ] $message"
+  fi
+  if [[ -z "$status" ]]; then
+    printf "\r$(tput el)%b %b" "${color_WAIT}[WAIT]${color_RESET}" "$message"
+    return 0
+  fi
+  printf "\r$(tput el)%b %b" "$status" "$message\n"
+  return 0
 }
 
 __vm_cli_list() {
@@ -154,7 +149,8 @@ __vm_cli_status() {
 __vm_cli_control() {
   local message
   case "$1" in
-  pause | reset | poweroff | savestate | acpipowerbutton | acpisleepbutton | shutdown | reboot)
+  pause | reset | poweroff | savestate | acpipowerbutton | acpisleepbutton | \
+    shutdown | reboot)
     if ! __vm_cli_is_running; then
       __vm_cli_message --info "The virtual machine is not running"
       return 1
@@ -173,7 +169,6 @@ __vm_cli_control() {
     return $?
     ;;
   esac
-
   case "$1" in
   pause) message="Pausing the virtual machine..." ;;
   reset) message="Resetting the virtual machine..." ;;
@@ -185,7 +180,6 @@ __vm_cli_control() {
   resume) message="Resuming the virtual machine..." ;;
   reboot) message="Rebooting the virtual machine..." ;;
   esac
-
   __vm_cli_message "$message"
   if VBoxManage controlvm "$VM_CLI_VM_NAME" "$@" >/dev/null 2>&1; then
     __vm_cli_message --done
@@ -200,7 +194,6 @@ __vm_cli_start() {
     __vm_cli_message --info "Already running."
     return 0
   fi
-
   local start_args=()
   while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -216,11 +209,9 @@ __vm_cli_start() {
     esac
     shift
   done
-
   if [[ " ${start_args[*]} " != *"--type"* ]]; then
     start_args+=("--type" "headless")
   fi
-
   __vm_cli_message "Initiating the virtual machine."
   if VBoxManage startvm "$VM_CLI_VM_NAME" "${start_args[@]}" >/dev/null 2>&1; then
     __vm_cli_message --done
@@ -234,15 +225,12 @@ __vm_cli_get_ip() {
   if ! __vm_cli_start "$@"; then
     return 1
   fi
-
   local tries=1
   local index ip start_time end_time current_time
-
   __vm_cli_message "Retrieving IP address"
   start_time=$(date +%s)
   end_time=$((start_time + VM_CLI_CMD_TIMEOUT))
   index="$(VBoxManage showvminfo "$VM_CLI_VM_NAME" --machinereadable | awk -F= ' $2 ~ /hostonly/ {sub(/[^0-9]+/, "", $1); print $1-1; exit}')"
-
   while [[ -n "$index" ]]; do
     current_time=$(date +%s)
     if [[ $current_time -ge $end_time ]]; then
@@ -281,14 +269,13 @@ __vm_cli_wait_ssh() {
     ((tries++))
   done
 }
-
 __vm_cli_ssh() {
   if ! __vm_cli_start "$@"; then
     return 1
   fi
-
   local ssh_config="$HOME/.ssh/config"
   local ip host host_name
+  local ssh_args=()
   ip="$(__vm_cli_get_ip "$@" 2>&1 | awk '$0 ~ /DONE/ {print $NF}')"
   if ! [[ "$ip" =~ ^192(\.[0-9]{1,3}){3}$ ]]; then
     __vm_cli_message --failed
@@ -299,14 +286,12 @@ __vm_cli_ssh() {
     host_name=$(tail -r "$ssh_config" | awk -v ip="$ip" 'found && $1 == "Host" {print $2; exit}; $1 == "HostName" && $2 == ip {found=1}')
     if [ -n "$host_name" ]; then
       host="$host_name"
-
       __vm_cli_message --info "Detected host $host for $ip."
     fi
   fi
-
   __vm_cli_message "Connecting..."
   if __vm_cli_wait_ssh "$host"; then
-    local ssh_args=("-t" "$host")
+    ssh_args=("-t" "$host")
     while [[ $# -gt 0 ]]; do
       if [[ "$1" =~ ^-(E|-(type|putenv|password(-id)?)) ]]; then
         if [[ " $1 " != *"="* ]] && [[ -n "$2" ]] && ! [[ "$2" =~ ^- ]]; then
@@ -331,12 +316,75 @@ __vm_cli_ssh() {
   return 1
 }
 
-__vm_cli() {
-  if ! command -v VBoxManage >/dev/null 2>&1; then
-    __vm_cli_message --warning "VBoxManage command not found."
-    exit 1
+__vm_cli_update() {
+  local exit_code=0
+  local api_url="https://api.github.com/repos/kallookoo/vm-cli/releases/latest"
+  local token response version cmd
+  local install_path
+  install_path="$(dirname "${BASH_SOURCE[0]:-0}")"
+  for cmd in curl tar; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+      echo "Then $cmd command is required but not installed."
+      exit 1
+    fi
+  done
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --token)
+      if [[ -n "$2" ]] && ! [[ "$2" =~ ^- ]]; then
+        token="$2"
+        shift
+      fi
+      ;;
+    esac
+    shift
+  done
+  __vm_cli_message --info "Checking the latest version."
+  response="$(curl -sfL "$api_url")"
+  exit_code=$?
+  if echo "$response" | grep -q "API rate limit exceeded"; then
+    if [[ -z "$token" ]]; then
+      __vm_cli_message --warning "GitHub API rate limit exceeded. Please provide a token."
+      exit 1
+    fi
+    response="$(curl -sfL -H "Authorization: Bearer $token" "$api_url")"
+    exit_code=$?
   fi
+  if [[ "$exit_code" -ne 0 || -z "$response" ]]; then
+    __vm_cli_message --failed "Failed to fetch the latest version."
+    exit 2
+  fi
+  # Extracts the latest version using jq, awk, or sed.
+  if command -v jq >/dev/null 2>&1; then
+    version=$(jq -n "$response" | jq -r '.tag_name')
+  elif command -v awk >/dev/null 2>&1; then
+    version=$(echo "$response" | awk -F: '$1 ~ /tag_name/ {gsub(/[^v0-9\.]+/, "", $2) ;print $2; exit}')
+  elif command -v sed >/dev/null 2>&1; then
+    version=$(echo "$response" | sed -n 's/.*"tag_name": *"\([^"]*\)".*/\1/p')
+  else
+    __vm_cli_message --warning "sed, awk, or jq is required to perform the update."
+    exit 2
+  fi
+  if [[ -z "$version" ]] || ! [[ "$version" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo "There was an error trying to check what is the latest version."
+    exit 2
+  fi
+  version="${version#v}"
+  if [[ $VM_CLI_VERSION -eq $version ]]; then
+    __vm_cli_message --info "Already use the latest version"
+    exit 0
+  fi
+  __vm_cli_message --info "Updating to $version version"
+  curl -sfL "https://github.com/kallookoo/vm-cli/releases/download/v1.0.0/vm-cli.tar.gz" | tar -xzf - -C "$install_path" || {
+    __vm_cli_message --failed
+    exit 2
+  }
+  chmod +x "$install_path/vm-cli"
+  __vm_cli_message --done "Updated to $version version"
+  exit 0
+}
 
+__vm_cli() {
   case "${1:-help}" in
   help)
     __vm_cli_help
@@ -345,6 +393,16 @@ __vm_cli() {
     __vm_cli_message --info "Version: $VM_CLI_VERSION"
     exit 0
     ;;
+  update)
+    shift
+    __vm_cli_update "$@"
+    ;;
+  esac
+  if ! command -v VBoxManage >/dev/null 2>&1; then
+    __vm_cli_message --warning "VBoxManage command not found."
+    exit 1
+  fi
+  case "$1" in
   list)
     shift
     __vm_cli_list "$@"
@@ -361,7 +419,6 @@ __vm_cli() {
     fi
     ;;
   esac
-
   if [[ -z "$VM_CLI_VM_NAME" ]]; then
     if [[ -z "$VM_CLI_VM_DEFAULT" ]]; then
       __vm_cli_message --warning "Missing virtual machine name."
@@ -374,24 +431,19 @@ __vm_cli() {
     __vm_cli_message --warning "The Virtual machine not found."
     exit 1
   fi
-
   if [[ $# -eq 0 ]]; then
     __vm_cli_help
   fi
-
   local exit_code=0
-
   case "$1" in
   control)
     shift
     __vm_cli_control "$@"
     exit_code=$?
     ;;
-  pause | resume | reset | poweroff | savestate)
-    __vm_cli_control "$@"
-    exit_code=$?
-    ;;
-  acpipowerbutton | acpisleepbutton | reboot | shutdown)
+  pause | resume | reset | \
+    poweroff | savestate | acpipowerbutton | \
+    acpisleepbutton | reboot | shutdown)
     __vm_cli_control "$@"
     exit_code=$?
     ;;
@@ -445,4 +497,5 @@ __vm_cli() {
   exit $exit_code
 }
 
+# Main function
 __vm_cli "$@"
