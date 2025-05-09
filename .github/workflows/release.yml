@@ -9,16 +9,22 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
-      - name: Set Version and Create Release
+      - name: Create Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if ! git log -1 --pretty=%B | grep -iq "^create release"; then
+            echo "Skipping release creation as the commit message does not contain 'create release'."
+            exit 0
+          fi
           VERSION="$(awk -F= '/VM_CLI_VERSION/ {gsub(/"/, "", $2); print $2; exit}' vm-cli)"
           if [ -z "$VERSION" ]; then
             echo "Version not found in vm-cli file."
             exit 1
           fi
-          echo "Version: $VERSION"
-          gh release list | awk '{print $2}' | while read -r tag; do gh release delete "$tag" --cleanup-tag --yes; done
-          zip -j vm-cli.zip vm-cli || exit $?
+          zip -j vm-cli.zip vm-cli || {
+            echo "Failed to create zip file."
+            exit 2
+          }
+          gh release delete "v$VERSION" --cleanup-tag --yes >/dev/null 2>&1 || true
           gh release create "v$VERSION" vm-cli.zip --title "Release v$VERSION" --latest
