@@ -13,6 +13,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if ! git log -1 --pretty=%B | grep -iq "^create release"; then
+            echo "Skipping release creation as the commit message does not contain 'create release'."
+            exit 0
+          fi
           VERSION="$(awk -F= '/VM_CLI_VERSION/ {gsub(/"/, "", $2); print $2; exit}' vm-cli)"
           if [ -z "$VERSION" ]; then
             echo "Version not found in vm-cli file."
