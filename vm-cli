@@ -73,7 +73,7 @@ EOF
 }
 
 __vm_cli_message() {
-  [ -t 1 ] && return 0
+  [ -t 1 ] || return 0
   local message status
   local color_WAIT="\e[1;35m"
   local color_INFO="\e[1;36m"
