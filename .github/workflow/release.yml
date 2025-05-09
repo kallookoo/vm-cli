@@ -1,0 +1,24 @@
+name: Auto Release
+on:
+  push:
+    branches: [main]
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set Version and Create Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION="$(awk -F= '/VM_CLI_VERSION/ {gsub(/"/, "", $2); print $2; exit}' vm-cli)"
+          if [ -z "$VERSION" ]; then
+            echo "Version not found in vm-cli file."
+            exit 1
+          fi
+          echo "Version: $VERSION"
+            gh release list | awk '{print $2}' | while read -r tag; do gh release delete "$tag" --cleanup-tag --yes; done
+            zip -j "vm-cli-v${VERSION}.zip" vm-cli
+            gh release create "v$VERSION" "vm-cli-v${VERSION}.zip" --title "Release v$VERSION" --latest
