@@ -20,5 +20,5 @@ jobs:
           fi
           echo "Version: $VERSION"
           gh release list | awk '{print $2}' | while read -r tag; do gh release delete "$tag" --cleanup-tag --yes; done
-          zip -j "vm-cli-v${VERSION}.zip" vm-cli
-          gh release create "v$VERSION" "vm-cli-v${VERSION}.zip" --title "Release v$VERSION" --latest --notes-file /dev/null
+          zip -j vm-cli.zip vm-cli || exit $?
+          gh release create "v$VERSION" vm-cli.zip --title "Release v$VERSION" --latest
