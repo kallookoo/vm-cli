@@ -370,7 +370,7 @@ __vm_cli_update() {
     exit 2
   fi
   version="${version#v}"
-  if [[ $VM_CLI_VERSION -eq $version ]]; then
+  if [[ "$VM_CLI_VERSION" == "$version" ]]; then
     __vm_cli_message --info "Already use the latest version"
     exit 0
   fi
