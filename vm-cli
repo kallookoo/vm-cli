@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-VM_CLI_VERSION="1.0.0"
+VM_CLI_VERSION="1.0.1"
 
 case "$(uname -s)" in
 Darwin) ;;
