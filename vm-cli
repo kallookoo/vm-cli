@@ -60,8 +60,6 @@ VIRTUAL MACHINE COMMANDS:
   reboot              Reboot the virtual machine.
   pause               Pause the Virtual Machine.
   resume              Resume the Virtual Machine.
-  cli                 Pass the defined subcommand directly to VBoxManage.
-                      Note: This command not parse the arguments.
   control             Pass the defined subcommand directly to VBoxManage controlvm.
   ssh                 SSH into the Virtual Machine. Requires Host-Only.
                       This command will autostart the Virtual Machine.
