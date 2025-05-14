@@ -170,7 +170,7 @@ END {
 }
 
 __vm_cli_is_running() {
-  VBoxManage list runningvms | grep -q "$VM_CLI_VM_NAME"
+  VBoxManage list runningvms | grep -q "\"$VM_CLI_VM_NAME\""
 }
 
 __vm_cli_status() {
@@ -550,7 +550,7 @@ __vm_cli() {
       vm_name="$1"
       shift
     fi
-    if [[ -n "$vm_name" ]] && VBoxManage list vms | grep -q "$vm_name"; then
+    if [[ -n "$vm_name" ]] && VBoxManage list vms | grep -q "\"$vm_name\""; then
       VM_CLI_VM_NAME="$vm_name"
     fi
     ;;
