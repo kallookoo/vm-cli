@@ -1,11 +1,11 @@
 # vm-cli
 
->[!NOTE]
-> Currently under development.
+>[!IMPORTANT]
+> Currently in development, use it with care and at your own risk.
 
 Command to simplify the use of VirtualBox (VBoxManage) from the terminal.
 
->[!IMPORTANT]
+>[!NOTE]
 > Do not copy&paste the code unless you know what you are doing.
 
 ## Download & Install
@@ -36,10 +36,13 @@ wm-cli update --token "$(gh auth token)"
 ```text
 Version: $VM_CLI_VERSION
 
-Usage: vm-cli [GLOBAL COMMAND] [OPTIONS]
-       vm-cli [--vm NAME|UUID] [VIRTUAL MACHINNE COMMAND] [OPTIONS]
+Usage: vm-cli [GLOBAL OPTIONS] [GLOBAL COMMAND] [OPTIONS]
+       vm-cli [GLOBAL OPTIONS] [VIRTUAL MACHINNE COMMAND] [OPTIONS]
 
-OPTIONS:
+GLOBAL OPTIONS:
+  --no-color          Disable the vm-cli color output. Default is enabled.
+  --timeout           Max. time the command will attempt to execute, in seconds.
+                      Default: 30 seconds.
   --vm                Specify the Virtual Machine Name or UUID.
                       Required unless VM_CLI_VM_DEFAULT is set in environment.
                       You can also use --name, --uuid, or --id.
@@ -75,6 +78,8 @@ VIRTUAL MACHINE COMMANDS:
   reboot              Reboot the virtual machine.
   pause               Pause the Virtual Machine.
   resume              Resume the Virtual Machine.
+  cli                 Pass the defined subcommand directly to VBoxManage.
+                      Note: This command not parse the arguments.
   control             Pass the defined subcommand directly to VBoxManage controlvm.
   ssh                 SSH into the Virtual Machine. Requires Host-Only.
                       This command will autostart the Virtual Machine.
@@ -87,4 +92,6 @@ ENVIRONMENT:
   VM_CLI_VM_DEFAULT   Default Virtual Machine.
   VM_CLI_CMD_TIMEOUT  Max. time the command will attempt to execute, in seconds.
                       Default: 30 seconds.
+  VM_CLI_COLOR        Enable or disable color output. Default: true.
+                      You can use true, yes or false, no.
 ```
