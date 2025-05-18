@@ -42,4 +42,5 @@ jobs:
           done < <(gh release list --json tagName | jq -r '.[].tagName' 2>/dev/null)
 
           # Create a new release.
-          gh release create "v$VM_CLI_VERSION" vm-cli.tar.gz --title "Release v$VM_CLI_VERSION" --notes "" --latest
+          compiled_at="$(date -u +'%Y-%m-%d %H:%M:%S %Z')"
+          gh release create "v$VM_CLI_VERSION" vm-cli.tar.gz --title "Release v$VM_CLI_VERSION" --notes "Version v$VM_CLI_VERSION compiled at $compiled_at" --latest
