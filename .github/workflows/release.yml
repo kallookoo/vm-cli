@@ -42,5 +42,4 @@ jobs:
           done < <(gh release list --json tagName | jq -r '.[].tagName' 2>/dev/null)
 
           # Create a new release.
-          git log --pretty=%B | awk 'tolower($0) ~ /^create release/ { if (NR > 1) {exit} next } NF {print}' > release_notes.txt
-          gh release create "v$VM_CLI_VERSION" vm-cli.tar.gz --title "Release v$VM_CLI_VERSION" -F release_notes.txt --latest
+          gh release create "v$VM_CLI_VERSION" vm-cli.tar.gz --title "Release v$VM_CLI_VERSION" --notes "v$VM_CLI_VERSION" --latest
