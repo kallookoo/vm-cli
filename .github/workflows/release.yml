@@ -17,14 +17,28 @@ jobs:
             echo "Skipping release creation as the commit message does not contain 'create release'."
             exit 0
           fi
-          VERSION="$(awk -F= '/VM_CLI_VERSION/ {gsub(/"/, "", $2); print $2; exit}' vm-cli)"
-          if [ -z "$VERSION" ]; then
+          if ! bash -c 'compile.sh'; then
+            echo "Compilation failed."
+            exit 1
+          fi
+          VM_CLI_VERSION="$(awk -F= '/VM_CLI_VERSION/ {gsub(/"/, "", $2); print $2; exit}' dist/vm-cli)"
+          if [ -z "$VM_CLI_VERSION" ]; then
             echo "Version not found in vm-cli file."
             exit 1
           fi
-          tar -czf vm-cli.tar.gz vm-cli || {
+
+          tar -czf vm-cli.tar.gz -C dist vm-cli || {
             echo "Failed to create tar.gz file."
             exit 2
           }
-          gh release delete "v$VERSION" --cleanup-tag --yes >/dev/null 2>&1 || true
-          gh release create "v$VERSION" vm-cli.tar.gz --title "Release v$VERSION" --latest
+
+          # Delete the release if it exists.
+          gh release delete "v$VM_CLI_VERSION" --cleanup-tag --yes >/dev/null 2>&1 || true
+          # Delete all previous releases but keep the tag.
+          while read -r tag; do
+            [ -n "$tag" ] && gh release delete "$tag" --yes >/dev/null 2>&1 || true
+          done < <(gh release list --json tagName | jq -r '.[].tagName' 2>/dev/null)
+
+          # Create a new release.
+          git log --pretty=%B | awk 'tolower($0) ~ /^create release/ { if (NR > 1) {exit} next } NF {print}' > release_notes.txt
+          gh release create "v$VM_CLI_VERSION" vm-cli.tar.gz --title "Release v$VM_CLI_VERSION" -F release_notes.txt --latest
