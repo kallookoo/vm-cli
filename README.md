@@ -31,67 +31,38 @@ Using the token and obtain with the gh command.
 wm-cli update --token "$(gh auth token)"
 ```
 
-## Help vm-cli output
+## The Help
 
 ```text
-Version: $VM_CLI_VERSION
+Usage: vm-cli [COMMAND] [FLAGS] [OPTIONS]
+Run the 'vm-cli help command' for information.
 
-Usage: vm-cli [GLOBAL OPTIONS] [GLOBAL COMMAND] [OPTIONS]
-       vm-cli [GLOBAL OPTIONS] [VIRTUAL MACHINNE COMMAND] [OPTIONS]
+Environment:
+VM_CLI_DEFAULT  Default Virtual Machine.
+VM_CLI_TIMEOUT  Max command execution time in seconds. Default: 30.
+VM_CLI_COLOR    Set to false to disable color. Default: true.
 
-GLOBAL OPTIONS:
-  --no-color          Disable the vm-cli color output. Default is enabled.
-  --timeout           Max. time the command will attempt to execute, in seconds.
-                      Default: 30 seconds.
-  --vm                Specify the Virtual Machine Name or UUID.
-                      Required unless VM_CLI_VM_DEFAULT is set in environment.
-                      You can also use --name, --uuid, or --id.
+Flags:
+--vm <name|uuid> The Virtual Machine. Overrides the VM_CLI_DEFAULT.
+--timeout <int>  Attempt to execute, in seconds. Overrides the VM_CLI_TIMEOUT.
+--no-color       Disable the vm-cli color output. Overrides the VM_CLI_COLOR.
 
-GLOBAL COMMANDS:
-  list                List all Virtual Machines.
-    --running         Show only running.
-  help                Show this help message.
-  version             Show version information.
-  update              Updates wm-cli to the latest version.
-    --token           Specify the GitHub token for authentication.
-                      Required if you have exceeded the GitHub API rate limit.
-
-VIRTUAL MACHINE COMMANDS:
-  See the VBoxManage documentation for more details.
-  https://www.virtualbox.org/manual/ch08.html
-
-  start               Start the Virtual Machine.
-    --type            Set the type of the Virtual Machine (headless by default).
-    --putenv, -E      Set environment variables for the Virtual Machine.
-    --password        Set the password file for the Virtual Machine.
-    --password-id     Set the password ID for the Virtual Machine.
-  stop                Stop the Virtual Machine (saves state by default).
-    --save            Save the Virtual Machine state.
-    --acpi            Send ACPI power button signal.
-    --sleep           Send ACPI sleep signal.
-                      Only work if the guest OS supports it.
-    --poweroff        Power off the Virtual Machine immediately.
-  save                Alias for 'stop --save'.
-  poweroff            Alias for 'stop --poweroff'.
-  shutdown            Asks the guest OS to shutdown.
-    --force           Force shutdown.
-  reboot              Reboot the virtual machine.
-  pause               Pause the Virtual Machine.
-  resume              Resume the Virtual Machine.
-  cli                 Pass the defined subcommand directly to VBoxManage.
-                      Note: This command not parse the arguments.
-  control             Pass the defined subcommand directly to VBoxManage controlvm.
-  ssh                 SSH into the Virtual Machine. Requires Host-Only.
-                      This command will autostart the Virtual Machine.
-                      Use -- to pass arguments to ssh to separate the args.
-  status              Show Virtual Machine running status.
-  ip                  Show the Host-Only IP address of the Virtual Machine.
-                      This command will autostart the Virtual Machine.
-
-ENVIRONMENT:
-  VM_CLI_VM_DEFAULT   Default Virtual Machine.
-  VM_CLI_CMD_TIMEOUT  Max. time the command will attempt to execute, in seconds.
-                      Default: 30 seconds.
-  VM_CLI_COLOR        Enable or disable color output. Default: true.
-                      You can use true, yes or false, no.
+Commands:
+  help      Show this help message.
+  version   Show version information.
+  update    Updates wm-cli to the latest version.
+  list      List all Virtual Machines.
+  status    Show Virtual Machine running status.
+  start     Start the Virtual Machine in headless by default.
+  stop      Stop the Virtual Machine (saves state by default).
+  save      Save the Virtual Machine state.
+  sleep     Sleep the Virtual Machine.
+  poweroff  Power off the Virtual Machine immediately.
+  shutdown  Asks the guest OS to shutdown.
+  pause     Pause the Virtual Machine.
+  resume    Resume the Virtual Machine.
+  reboot    Reboot the virtual machine.
+  control   Pass the command directly to VBoxManage controlvm.
+  ssh       SSH into the Virtual Machine using the Host-Only IP.
+  ip        Show the Host-Only IP address of the Virtual Machine.
 ```
