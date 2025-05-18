@@ -17,10 +17,12 @@ jobs:
             echo "Skipping release creation as the commit message does not contain 'create release'."
             exit 0
           fi
-          if ! bash -c compile.sh; then
+          ls -lA
+          bash compile.sh || {
             echo "Compilation failed."
             exit 1
-          fi
+          }
+
           VM_CLI_VERSION="$(awk -F= '/VM_CLI_VERSION/ {gsub(/"/, "", $2); print $2; exit}' dist/vm-cli)"
           if [ -z "$VM_CLI_VERSION" ]; then
             echo "Version not found in vm-cli file."
