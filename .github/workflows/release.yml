@@ -17,7 +17,7 @@ jobs:
             echo "Skipping release creation as the commit message does not contain 'create release'."
             exit 0
           fi
-          if ! bash -c 'compile.sh'; then
+          if ! bash -c compile.sh; then
             echo "Compilation failed."
             exit 1
           fi
