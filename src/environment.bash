@@ -6,7 +6,8 @@
 readonly VM_CLI_VERSION="1.2.0"
 
 # See the function __vm_cli__update
-readonly VM_CLI_INSTALL_PATH="${BASH_SOURCE[0]:-0}"
+VM_CLI_INSTALL_PATH="$(dirname "${BASH_SOURCE[0]:-0}")"
+readonly VM_CLI_INSTALL_PATH
 
 # Set the defaults
 
