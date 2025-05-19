@@ -30,6 +30,7 @@ __vm_cli() {
       ;;
     version | update | list | control | start | status | ip | ssh)
       cmd="$1"
+      help_cmd="$1"
       ;;
     pause | resume | reset | poweroff | savestate | acpipowerbutton | \
       acpisleepbutton | reboot | shutdown)
