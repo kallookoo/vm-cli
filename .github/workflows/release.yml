@@ -13,11 +13,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ! git log -1 --pretty=%B | grep -iq "^create release"; then
-            echo "Skipping release creation as the commit message does not contain 'create release'."
-            exit 0
-          fi
-          ls -lA
           bash compile.sh || {
             echo "Compilation failed."
             exit 1
@@ -34,11 +29,9 @@ jobs:
             exit 2
           }
 
-          # Delete the release if it exists.
-          gh release delete "v$VM_CLI_VERSION" --cleanup-tag --yes >/dev/null 2>&1 || true
-          # Delete all previous releases but keep the tag.
+          # Delete all previous releases.
           while read -r tag; do
-            [ -n "$tag" ] && gh release delete "$tag" --yes >/dev/null 2>&1 || true
+            [ -n "$tag" ] && gh release delete "v$VM_CLI_VERSION" --cleanup-tag --yes >/dev/null 2>&1 || true
           done < <(gh release list --json tagName | jq -r '.[].tagName' 2>/dev/null)
 
           # Create a new release.
