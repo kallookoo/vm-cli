@@ -25,7 +25,7 @@ jobs:
               exit 1
             fi
 
-            tar -czf vm-cli.$hypervisor.tar.gz -C dist vm-cli/$hypervisor || {
+            tar -czf vm-cli.$hypervisor.tar.gz -C dist/$hypervisor vm-cli || {
               echo "Failed to create tar.gz file."
               exit 2
             }
