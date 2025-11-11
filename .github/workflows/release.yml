@@ -38,4 +38,4 @@ jobs:
 
           # Create a new release.
           compiled_at="$(date -u +'%Y-%m-%d %H:%M:%S %Z')"
-          gh release create "v$VM_CLI_VERSION" vm-cli.virtualbox.tar.gz vm-cli.vmware.tar.gz--title "Release v$VM_CLI_VERSION" --notes "Latest version compiled at $compiled_at" --latest
+          gh release create "v$VM_CLI_VERSION" vm-cli.virtualbox.tar.gz vm-cli.vmware.tar.gz --title "Release v$VM_CLI_VERSION" --notes "Latest version compiled at $compiled_at" --latest
