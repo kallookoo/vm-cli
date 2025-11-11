@@ -1,5 +1,7 @@
 # Build Priority: 1
 
+# set -x
+
 # Readonly
 
 # The version of the CLI
@@ -16,9 +18,6 @@ readonly VM_CLI_INSTALL_PATH
 
 # See the function __vm_cli_set_color
 : VM_CLI_COLOR=true
-
-# See the function __vm_cli__detect_hypervisor
-: VM_CLI_HYPERVISOR=auto
 
 # Set the empty values
 

@@ -6,46 +6,39 @@ __vm_cli__control() {
   pause | reset | stop | suspend)
     if ! __vm_cli__is_running; then
       __vm_cli__message --info "The virtual machine is stopped."
-      return 1
+      return 0
     fi
     ;;
-  unpause)
-    # VMware uses unpause instead of resume
+  unpause | start)
     if __vm_cli__is_running; then
       __vm_cli__message --info "The virtual machine is already running."
-      return 1
+      return 0
     fi
     ;;
   *)
     # Pass unknown commands directly to vmrun
     __vm_cli__message --info "Executing vmrun command: $1"
-    vmrun "${VM_CLI_VMRUN_ARGS[@]}" "$@" "$VM_CLI_VMX_PATH"
+    vmrun "${VM_CLI_START_ARGS[@]}" "$1" "$VM_CLI_VM_FULL_NAME" "${VM_CLI_ARGS[@]}"
     return $?
     ;;
   esac
 
   case "$1" in
+  start)
+    message="Starting the virtual machine."
+    if ! [[ "${#VM_CLI_ARGS[@]}" =~ gui ]]; then
+      VM_CLI_ARGS=("nogui" "${VM_CLI_ARGS[@]}")
+    fi
+    ;;
   pause) message="Pausing the virtual machine." ;;
   unpause) message="Resuming the virtual machine." ;;
-  reset) message="Resetting the virtual machine ($VM_CLI_STOP_MODE)." ;;
-  stop) message="Stopping the virtual machine ($VM_CLI_STOP_MODE)." ;;
-  suspend) message="Suspending the virtual machine ($VM_CLI_STOP_MODE)." ;;
+  reset) message="Resetting the virtual machine." ;;
+  stop) message="Stopping the virtual machine." ;;
+  suspend) message="Suspending the virtual machine." ;;
   esac
 
   __vm_cli__message "$message"
-  local cmd_args=("${VM_CLI_VMRUN_ARGS[@]}" "$1")
-
-  # Add VMX path
-  cmd_args+=("$VM_CLI_VMX_PATH")
-
-  # Add mode for commands that support it
-  case "$1" in
-  reset | stop | suspend)
-    cmd_args+=("$VM_CLI_STOP_MODE")
-    ;;
-  esac
-
-  if vmrun "${cmd_args[@]}" >/dev/null 2>&1; then
+  if vmrun "${VM_CLI_START_ARGS[@]}" "$1" "$VM_CLI_VM_FULL_NAME" "${VM_CLI_ARGS[@]}" >/dev/null 2>&1; then
     __vm_cli__message --done
     return 0
   fi
