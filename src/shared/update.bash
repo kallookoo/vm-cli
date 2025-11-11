@@ -1,9 +1,19 @@
 # Build Priority: 11
 
 __vm_cli__update() {
-  local token response version cmd exit_code=0
+  local token response version cmd
+  local exit_code=0
   local repository="kallookoo/vm-cli"
   local api_url="https://api.github.com/repos/$repository/releases/latest"
+
+  case "${VM_CLI_HYPERVISOR:-undef}" in
+  vmware) ;;
+  virtualbox) ;;
+  *)
+    __vm_cli__message --failed "Unsupported hypervisor."
+    exit 1
+    ;;
+  esac
 
   for cmd in curl tar; do
     if ! command -v "$cmd" >/dev/null 2>&1; then
@@ -67,7 +77,7 @@ __vm_cli__update() {
   fi
 
   __vm_cli__message --info "Updating to $version version."
-  curl -sfL "https://github.com/$repository/releases/download/v$version/vm-cli.tar.gz" |
+  curl -sfL "https://github.com/$repository/releases/download/v$version/vm-cli.$VM_CLI_HYPERVISOR.tar.gz" |
     tar -xzf - -C "$VM_CLI_INSTALL_PATH" || {
     __vm_cli__message --failed
     exit 2

@@ -1,9 +1,8 @@
 # Build Priority: 100
 
 __vm_cli() {
-  local color timeout vmx_path
+  local color timeout name
   local cmd="usage"
-  local stop_mode="soft"
   local parsed_args=()
   local exit_code=0
   local help_cmd="help"
@@ -22,9 +21,9 @@ __vm_cli() {
         shift
       fi
       ;;
-    --vmx)
+    --vm)
       if [[ -n "$2" ]] && ! [[ "$2" =~ ^- ]]; then
-        vmx_path="$2"
+        name="$2"
         shift
       fi
       ;;
@@ -34,30 +33,17 @@ __vm_cli() {
         shift
       fi
       ;;
-    version | update | list | start | status | ip | ssh)
+    version | update | list | status | ip | ssh)
       cmd="$1"
       help_cmd="$1"
       ;;
-    pause | unpause | reset | suspend)
-      cmd="control"
-      parsed_args+=("$1")
+    start | pause | unpause | reset | suspend | stop | control)
+      cmd="$1"
       help_cmd="$1"
-      ;;
-    stop)
-      cmd="control"
-      help_cmd="$1"
-      if [[ -n "$2" && "$2" =~ ^-- ]]; then
-        case "$2" in
-        --hard)
-          stop_mode="hard"
-          ;;
-        --soft)
-          stop_mode="soft"
-          ;;
-        esac
+      if [[ -n "$2" && "$2" =~ ^--(hard|soft|gui|nogui) ]]; then
+        parsed_args+=("${2#--}")
         shift
       fi
-      parsed_args+=("stop")
       ;;
     *) parsed_args+=("$1") ;;
     esac
@@ -85,35 +71,20 @@ __vm_cli() {
     exit 2
   fi
 
-  # Initialize VMware-specific arrays
-  VM_CLI_VMRUN_ARGS=()
-  VM_CLI_ARGS=()
-
-  # Set default VMware type
-  if [[ " $* " != *" -T "* ]]; then
-    VM_CLI_VMRUN_ARGS+=("-T" "fusion")
-  fi
-
   if [[ "$cmd" == "list" ]]; then
     __vm_cli__list "$@"
   fi
 
-  __vm_cli__set_vmx_path "$vmx_path"
-
-  if [[ "$cmd" =~ ^(start|ip|ssh)$ ]]; then
+  __vm_cli__set_name "$name"
+  if [[ "$cmd" != "status" ]]; then
     __vm_cli__set_args "$@"
     set -- "${VM_CLI_ARGS[@]}"
     __vm_cli__set_timeout "$timeout"
   fi
 
-  # Set stop mode for control commands
-  if [[ "$cmd" == "control" && "$stop_mode" != "soft" ]]; then
-    VM_CLI_STOP_MODE="$stop_mode"
-  fi
-
   case "$cmd" in
+  start | pause | unpause | reset | suspend | stop) __vm_cli__control "$cmd" "$@" ;;
   control) __vm_cli__control "$@" ;;
-  start) __vm_cli__start ;;
   status) __vm_cli__status ;;
   ip) __vm_cli__get_ip ;;
   ssh) __vm_cli__ssh "$@" ;;

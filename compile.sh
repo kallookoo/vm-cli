@@ -1,17 +1,42 @@
 #!/usr/bin/env bash
 
 __vm_cli_compile() {
-  local compiled_at component priority
-  local dest="dist/vm-cli"
+  local dest compiled_at component priority hypervisor src install=false
   local items=()
   components=()
   compiled_at="$(date -u +'%Y-%m-%d %H:%M:%S %Z')"
 
-  [ -d dist ] || mkdir dist
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+    --install)
+      install=true
+      ;;
+    --hypervisor)
+      if [[ -n "$2" ]] && ! [[ "$2" =~ ^- ]]; then
+        hypervisor="$2"
+        shift
+      fi
+      ;;
+    virtualbox | vmware)
+      hypervisor="$1"
+      ;;
+    esac
+    shift
+  done
 
-  for component in src/*.bash; do
-    priority="$(awk -F: '/Priority/ {print $2; exit}' "$component")"
-    items+=("$priority@$component")
+  if [[ -z "$hypervisor" ]]; then
+    echo "Error: --hypervisor <virtualbox|vmware> is required."
+    return 1
+  fi
+
+  mkdir -p "dist/$hypervisor"
+  dest="dist/$hypervisor/vm-cli"
+
+  for src in src/shared src/"$hypervisor"; do
+    for component in "$src"/*.bash; do
+      priority="$(awk -F: '/Priority/ {print $2; exit}' "$component")"
+      items+=("$priority@$component")
+    done
   done
 
   while read -r component; do
@@ -49,7 +74,7 @@ $(
 EOF
   chmod +x "$dest"
   echo "Compiled completed."
-  if [[ "$1" == "--install" && -d "$HOME/.local/bin" ]]; then
+  if [[ "$install" == true && -d "$HOME/.local/bin" ]]; then
     cp -f "$dest" "$HOME/.local/bin/vm-cli"
     echo "Installed to $HOME/.local/bin/vm-cli"
   fi
