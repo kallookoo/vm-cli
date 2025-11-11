@@ -12,6 +12,7 @@ __vm_cli__help_commands() {
   pause     Pause the Virtual Machine.
   unpause   Resume (unpause) the Virtual Machine.
   reset     Reset the Virtual Machine.
+  control   Pass the command directly to vmrun command.
   ssh       SSH into the Virtual Machine using detected IP.
   ip        Show the IP address of the Virtual Machine.
 EOF
