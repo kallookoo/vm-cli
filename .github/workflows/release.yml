@@ -33,8 +33,10 @@ jobs:
             }
           done
 
-          # Delete previous release
-          gh release delete "v$VM_CLI_VERSION" --cleanup-tag --yes >/dev/null 2>&1 || true
+          # Delete all previous releases.
+          while read -r tag; do
+            [ -n "$tag" ] && gh release delete "$tag" --cleanup-tag --yes >/dev/null 2>&1 || true
+          done < <(gh release list --json tagName | jq -r '.[].tagName' 2>/dev/null)
 
           # Create a release.
           compiled_at="$(date -u +'%Y-%m-%d %H:%M:%S %Z')"
