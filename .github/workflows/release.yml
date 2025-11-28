@@ -31,11 +31,9 @@ jobs:
             }
           done
 
-          # Delete all previous releases.
-          while read -r tag; do
-            [ -n "$tag" ] && gh release delete "v$VM_CLI_VERSION" --cleanup-tag --yes >/dev/null 2>&1 || true
-          done < <(gh release list --json tagName | jq -r '.[].tagName' 2>/dev/null)
+          # Delete previous release
+          gh release delete "v$VM_CLI_VERSION" --cleanup-tag --yes >/dev/null 2>&1 || true
 
-          # Create a new release.
+          # Create a release.
           compiled_at="$(date -u +'%Y-%m-%d %H:%M:%S %Z')"
           gh release create "v$VM_CLI_VERSION" vm-cli.virtualbox.tar.gz vm-cli.vmware.tar.gz --title "Release v$VM_CLI_VERSION" --notes "Latest version compiled at $compiled_at" --latest
