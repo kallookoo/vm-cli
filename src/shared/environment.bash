@@ -3,7 +3,7 @@
 # Readonly
 
 # The version of the CLI
-readonly VM_CLI_VERSION="2.1.0"
+readonly VM_CLI_VERSION="2.1.1"
 
 # See the function __vm_cli__update
 VM_CLI_INSTALL_PATH="$(dirname "${BASH_SOURCE[0]:-0}")"
