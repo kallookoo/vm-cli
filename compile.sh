@@ -1,5 +1,16 @@
 #!/usr/bin/env bash
 
+__vm_cli__get_modified_at() {
+  local epoch file="$1"
+  if ! epoch="$(git log -1 --format=%ct -- "$file" 2>/dev/null)"; then
+    date -r "$file" -u +'%Y-%m-%d %H:%M:%S %Z'
+  elif [[ "$(uname -s)" == "Darwin" ]]; then
+    date -r "$epoch" -u +'%Y-%m-%d %H:%M:%S %Z'
+  else
+    date -d "@$epoch" -u +'%Y-%m-%d %H:%M:%S %Z'
+  fi
+}
+
 __vm_cli_compile() {
   local dest compiled_at component priority hypervisor src install=false
   local items=()
@@ -55,7 +66,7 @@ $(
     for component in "${components[@]}"; do
       awk \
         -v name="$(echo "$component" | sed -E 's|.*/([0-9]+-)?([^-\.]+)\.[^\.]+$|\2|')" \
-        -v modified_at="$(date -r "$component" -u +'%Y-%m-%d %H:%M:%S %Z')" \
+        -v modified_at="$(__vm_cli__get_modified_at "$component")" \
         '
       BEGIN { print "# Component: " name " at " modified_at }
       /cat <<EOF/ {in_heredoc=1; print; next}
