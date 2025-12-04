@@ -2,7 +2,7 @@
 
 __vm_cli__get_modified_at() {
   local epoch file="$1"
-  if ! epoch="$(git log -1 --format=%ct -- "$file" 2>/dev/null)"; then
+  if ! epoch="$(git log --follow -1 --format=%ct -- "$file" 2>/dev/null)"; then
     date -r "$file" -u +'%Y-%m-%d %H:%M:%S %Z'
   elif [[ "$(uname -s)" == "Darwin" ]]; then
     date -r "$epoch" -u +'%Y-%m-%d %H:%M:%S %Z'
