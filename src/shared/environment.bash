@@ -3,7 +3,7 @@
 # Readonly
 
 # The version of the CLI
-readonly VM_CLI_VERSION="2.1.1"
+readonly VM_CLI_VERSION="2.2.0"
 
 # See the function __vm_cli__update
 VM_CLI_INSTALL_PATH="$(dirname "${BASH_SOURCE[0]:-0}")"
@@ -38,3 +38,6 @@ VM_CLI_LATEST_MESSAGE=""
 
 # See the function __vm_cli__set_name
 VM_CLI_VM_NAME=""
+
+# See the function __vm_cli_validate_ipv4
+VM_CLI_VM_DETECTED_IP=""

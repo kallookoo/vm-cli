@@ -33,12 +33,12 @@ __vm_cli__ssh() {
     return 1
   fi
 
-  ip="$(printf "%b" "$VM_CLI_LATEST_MESSAGE" | awk '/DONE/ {print $(NF-2)}')"
-  if ! [[ -n "$ip" && "$ip" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
+  if [[ -z "$VM_CLI_VM_DETECTED_IP" ]]; then
     __vm_cli__message --failed "No valid IPv4 available."
     return 1
   fi
 
+  ip="$VM_CLI_VM_DETECTED_IP"
   host="$ip"
   if [[ -f "$ssh_config" ]] && grep -q "$ip" "$ssh_config"; then
     host_name=$(tail -r "$ssh_config" | awk -v ip="$ip" 'found && $1 == "Host" {print $2; exit}; $1 == "HostName" && $2 == ip {found=1}')

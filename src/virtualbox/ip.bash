@@ -9,7 +9,7 @@ __vm_cli__get_ip() {
         index="$(VBoxManage showvminfo "$VM_CLI_VM_NAME" --machinereadable | awk -F= '$2 ~ /hostonly/ {sub(/[^0-9]+/, "", $1); print $1-1; exit}')"
       fi
       ip="$(VBoxManage guestproperty enumerate "$VM_CLI_VM_NAME" "*Net/$index/*" | awk -F"'" '$2 ~ /Up/ {found=1}; found && $1 ~ /IP/ {print $2; exit}')"
-      if [[ -n "$ip" ]]; then
+      if __vm_cli_validate_ipv4 "$ip"; then
         __vm_cli__message --done "Detected $ip IP address."
         return 0
       fi

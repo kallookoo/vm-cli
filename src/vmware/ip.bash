@@ -3,21 +3,26 @@
 __vm_cli__get_ip() {
   local ip pid tries=1
   local timeout=$VM_CLI_TIMEOUT
+  local timeout_limit=60
+  local exceeded=0
+  local message
 
   if __vm_cli__control start; then
     __vm_cli__message "Retrieving IP address."
-    if [[ $timeout -lt 60 ]]; then
-      timeout=60
-      __vm_cli__message --info "Timeout temporarily adjusted to $timeout due to limitations."
-    fi
 
     vmrun "${VM_CLI_START_ARGS[@]}" getGuestIPAddress "$VM_CLI_VM_FULL_NAME" -wait >/dev/null 2>&1 &
     pid=$!
 
-    while [[ $timeout -ge $tries ]]; do
-      __vm_cli__message "[$tries/$timeout] Retrieving IP address."
+    while [[ $timeout_limit -ge $tries ]]; do
+      if [[ $tries -gt $timeout ]]; then
+        exceeded=$((tries - timeout))
+        message="${VM_CLI_COLOR_WARNING}[$tries/$timeout_limit]${VM_CLI_COLOR_RESET} (timeout exceeded by $exceeded seconds)"
+      else
+        message="[$tries/$timeout]"
+      fi
+      __vm_cli__message "$message Retrieving IP address."
       ip="$(vmrun "${VM_CLI_START_ARGS[@]}" getGuestIPAddress "$VM_CLI_VM_FULL_NAME" 2>/dev/null)"
-      if [[ -n "$ip" && "$ip" =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
+      if __vm_cli_validate_ipv4 "$ip"; then
         __vm_cli__message --done "Detected $ip IP address."
         return 0
       fi
