@@ -68,7 +68,7 @@ $(
         -v name="$(echo "$component" | sed -E 's|.*/([0-9]+-)?([^-\.]+)\.[^\.]+$|\2|')" \
         -v modified_at="$(__vm_cli__get_modified_at "$component")" \
         '
-      BEGIN { print "# Component: " name " at " modified_at }
+      BEGIN { print "# Component: " name " modified at " modified_at }
       /cat <<EOF/ {in_heredoc=1; print; next}
       /^EOF$/ && in_heredoc {print; in_heredoc=0; next}
       in_heredoc {print; next}
