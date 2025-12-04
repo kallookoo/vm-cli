@@ -26,3 +26,24 @@ __vm_cli__set_color() {
     VM_CLI_COLOR_VM="$(tput setaf 4)"
   fi
 }
+
+__vm_cli_validate_ipv4() {
+  local ip=$1
+  # Reset the detected IP.
+  VM_CLI_VM_DETECTED_IP=""
+
+  echo "$ip" | awk -F. '
+NF == 4 {
+  for (i = 1; i <= 4; i++) {
+    if ($i !~ /^[0-9]+$/ || $i < 0 || $i > 255) exit 1
+  }
+  if ($1 == 0 || $1 == 127 || $1 >= 224 || $4 == 0 || $4 == 255) exit 1
+  exit 0
+}
+{ exit 1 }
+' >/dev/null 2>&1 && {
+    VM_CLI_VM_DETECTED_IP="$ip"
+    return 0
+  }
+  return 1
+}
