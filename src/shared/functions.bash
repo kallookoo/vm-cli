@@ -14,16 +14,15 @@ __vm_cli__set_color() {
   VM_CLI_COLOR="${1:-$VM_CLI_COLOR}"
   case "$VM_CLI_COLOR" in
   false | no) color_enabled=false ;;
-  *) color_enabled=true ;;
   esac
-  if [[ "$color_enabled" == true && "$(tput colors)" -ge 8 ]]; then
-    VM_CLI_COLOR_WAIT="$(tput setaf 5)"
-    VM_CLI_COLOR_INFO="$(tput setaf 6)"
-    VM_CLI_COLOR_DONE="$(tput setaf 2)"
-    VM_CLI_COLOR_WARNING="$(tput setaf 3)"
-    VM_CLI_COLOR_FAILED="$(tput setaf 1)"
-    VM_CLI_COLOR_RESET="$(tput sgr0)"
-    VM_CLI_COLOR_VM="$(tput setaf 4)"
+  if [[ "$color_enabled" == true && -t 1 ]]; then
+    VM_CLI_COLOR_WAIT="\e[35m"    # magenta
+    VM_CLI_COLOR_INFO="\e[36m"    # cyan
+    VM_CLI_COLOR_DONE="\e[32m"    # green
+    VM_CLI_COLOR_WARNING="\e[33m" # yellow
+    VM_CLI_COLOR_FAILED="\e[31m"  # red
+    VM_CLI_COLOR_RESET="\e[0m"    # reset
+    VM_CLI_COLOR_VM="\e[34m"      # blue
   fi
 }
 

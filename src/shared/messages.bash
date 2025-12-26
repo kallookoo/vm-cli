@@ -15,7 +15,7 @@ __vm_cli__message() {
   message="$(echo "$VM_CLI_CURRENT_MESSAGE" | xargs)"
   if [[ -z "$header" ]]; then
     header="${VM_CLI_COLOR_WAIT}[WAIT]${VM_CLI_COLOR_RESET}"
-  elif ! [[ -p /dev/stdout ]]; then
+  elif [[ -t 1 ]]; then
     message+=$'\n'
   fi
   if [[ -n "$VM_CLI_VM_NAME" ]]; then
@@ -24,10 +24,8 @@ __vm_cli__message() {
   VM_CLI_LATEST_MESSAGE="$header $message"
   # Print the messages
   if [ -t 1 ]; then # TTY - Terminal
-    printf "\r$(tput el)%b" "$VM_CLI_LATEST_MESSAGE"
-  elif [ -p /dev/stdout ]; then # Pipe - Pipe to another command
-    printf "%b" "${VM_CLI_LATEST_MESSAGE}\n"
-  else # Redirect - Redirect to a file, uses stderr to print the message.
-    printf "\r$(tput el)%b" "$VM_CLI_LATEST_MESSAGE" >&2
+    printf "\r\e[K%b" "$VM_CLI_LATEST_MESSAGE"
+  else # Pipe or Redirection
+    printf "%b\n" "$VM_CLI_LATEST_MESSAGE"
   fi
 }
