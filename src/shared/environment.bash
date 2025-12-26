@@ -3,7 +3,7 @@
 # Readonly
 
 # The version of the CLI
-readonly VM_CLI_VERSION="2.2.0"
+readonly VM_CLI_VERSION="2.3.0"
 
 # See the function __vm_cli__update
 VM_CLI_INSTALL_PATH="$(dirname "${BASH_SOURCE[0]:-0}")"
@@ -12,10 +12,10 @@ readonly VM_CLI_INSTALL_PATH
 # Set the defaults
 
 # See the function __vm_cli_set_timeout
-: VM_CLI_TIMEOUT=30
+: "${VM_CLI_TIMEOUT:=30}"
 
 # See the function __vm_cli_set_color
-: VM_CLI_COLOR=true
+: "${VM_CLI_COLOR:=true}"
 
 # Set the empty values
 
