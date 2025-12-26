@@ -7,3 +7,6 @@ readonly VM_CLI_HYPERVISOR="vmware"
 
 # See the function __vm_cli__set_name
 VM_CLI_VM_FULL_NAME=""
+
+# See the function __vm_cli_set_color
+: "${VM_CLI_VMWARE_UPDATE_PATH:=true}"

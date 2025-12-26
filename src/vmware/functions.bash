@@ -54,3 +54,10 @@ __vm_cli__set_name() {
 __vm_cli__is_running() {
   vmrun list | grep -q "$VM_CLI_VM_FULL_NAME"
 }
+
+__vm_cli__update_path() {
+  local vmrun_path="/Applications/VMware Fusion.app/Contents/Public"
+  if [[ "$VM_CLI_VMWARE_UPDATE_PATH" == true && "$PATH" != *"$vmrun_path"* ]]; then
+    export PATH="/Applications/VMware Fusion.app/Contents/Public:$PATH"
+  fi
+}

@@ -66,6 +66,7 @@ __vm_cli() {
   usage) __vm_cli__help "usage" ;;
   esac
 
+  __vm_cli__update_path
   if ! command -v vmrun >/dev/null 2>&1; then
     __vm_cli__message --warning "vmrun command not found."
     exit 2
