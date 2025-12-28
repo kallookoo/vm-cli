@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+    <dict>
+        <!-- Prevent launchd kill the vmrun proc -->
+        <key>AbandonProcessGroup</key>
+        <true/>
+        <!-- Prevent launchd from restarting the job -->
+        <key>KeepAlive</key>
+        <false/>
+        <!-- Unique label for the job -->
+        <key>Label</key>
+        <!-- Change VirtualMachineName to the name of your VM -->
+        <string>vm.VirtualMachineName</string>
+        <!-- Command to start the VM using vm-cli -->
+        <key>ProgramArguments</key>
+        <array>
+            <!-- Adjust path to vm-cli if necessary -->
+            <string>/Users/vm-cli/.local/bin/vm-cli</string>
+            <string>start</string>
+            <!-- Disable colored output -->
+            <string>--no-color</string>
+            <!-- Specify the VM to start -->
+            <string>--vm</string>
+            <!-- Change VirtualMachineName to the name of your VM -->
+            <string>VirtualMachineName</string>
+        </array>
+        <!-- Run the job at load -->
+        <key>RunAtLoad</key>
+        <true/>
+    </dict>
+</plist>
