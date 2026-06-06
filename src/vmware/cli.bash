@@ -37,7 +37,8 @@ __vm_cli() {
       cmd="$1"
       help_cmd="$1"
       ;;
-    start | pause | unpause | reset | suspend | stop | control)
+    pause | unpause | shutdown | poweroff) cmd="$1" ;;
+    start | reset | suspend | stop | control)
       cmd="$1"
       help_cmd="$1"
       if [[ -n "$2" && "$2" =~ ^--(hard|soft|gui|nogui) ]]; then
@@ -55,6 +56,17 @@ __vm_cli() {
   fi
 
   __vm_cli__set_color "$color"
+
+  case "$cmd" in
+  pause | unpause | shutdown | poweroff)
+    # The (un)pause not working with the functions: status and is_running
+    # vmware returns nothing, found possible solution in
+    # vmware.log (read it, but breaks the shared)
+    __vm_cli__message --warning "Not yet implemented"
+    exit 2
+    ;;
+  esac
+
   set -- "${parsed_args[@]}"
 
   case "$cmd" in
