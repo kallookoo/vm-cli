@@ -35,7 +35,10 @@ jobs:
 
           # Delete all previous releases.
           while read -r tag; do
-            [ -n "$tag" ] && gh release delete "$tag" --cleanup-tag --yes >/dev/null 2>&1 || true
+            if [ "$tag" = "v$VM_CLI_VERSION" ]; then
+              gh release delete "$tag" --cleanup-tag --yes >/dev/null 2>&1 || true
+              break
+            fi
           done < <(gh release list --json tagName | jq -r '.[].tagName' 2>/dev/null)
 
           # Create a release.
